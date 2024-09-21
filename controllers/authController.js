@@ -52,3 +52,38 @@ export const verifyOTP = async (req, res) => {
   }
   res.status(400).json({ message: 'Invalid OTP' });
 };
+
+// Get user's mobile number
+export const getUserMobile = async (req, res) => {
+  const { mobile } = req.body; // Expect mobile number in request body
+  const user = await User.findOne({ mobile });
+
+  if (user) {
+    return res.status(200).json({ mobile: user.mobile });
+  }
+
+  return res.status(404).json({ message: 'User not found' });
+};
+
+// Update selectShipment method
+export const selectShipment = async (req, res) => {
+  const { mobile, shipmentType, useSenderMobile, receiverMobile } = req.body;
+  const user = await User.findOne({ mobile });
+
+  if (!user || !user.isVerified) {
+    return res.status(400).json({ message: 'User not verified or does not exist' });
+  }
+
+  // If checkbox is selected, use sender's mobile
+  if (useSenderMobile) {
+    user.receiverMobile = user.mobile; // Set receiver mobile to sender's mobile
+  } else {
+    user.receiverMobile = receiverMobile; // Otherwise, set to the provided receiver mobile
+  }
+
+  user.shipmentType = shipmentType;
+  await user.save();
+
+  return res.status(200).json({ message: `Shipment type '${shipmentType}' selected successfully` });
+};
+
