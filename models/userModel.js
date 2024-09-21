@@ -5,6 +5,8 @@ const userSchema = new mongoose.Schema({
   otp: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
   shipmentType: { type: String, enum: ['pickup', 'drop'], default: null }, // New field
+  receiverMobile: { type: String }, // New field for receiver mobile number
+
 });
 
 const User = mongoose.model('User', userSchema);
