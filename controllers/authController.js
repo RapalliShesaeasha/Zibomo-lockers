@@ -62,18 +62,28 @@ export const verifyOTP = async (req, res) => {
   res.status(400).json({ message: 'Invalid OTP' });
 };
 
-// Select Shipment Type
+// Updated selectShipment function to handle the receiver mobile number
 export const selectShipment = async (req, res) => {
-  const { mobile, shipmentType } = req.body; // Extract shipment type and mobile from request body
+  const { mobile, shipmentType, receiverMobile, sameAsSender } = req.body;
   const user = await User.findOne({ mobile });
 
   if (!user || !user.isVerified) {
     return res.status(400).json({ message: 'User not verified or does not exist' });
   }
 
-  // Update the shipment type
+  // If sameAsSender is true, set receiverMobile to mobile
+  if (sameAsSender) {
+    user.receiverMobile = mobile;
+  } else if (receiverMobile) {
+    // Otherwise, use the provided receiver mobile number
+    user.receiverMobile = receiverMobile;
+  }
+
   user.shipmentType = shipmentType;
   await user.save();
 
-  return res.status(200).json({ message: `Shipment type '${shipmentType}' selected successfully` });
+  return res.status(200).json({ 
+    message: `Shipment type '${shipmentType}' and receiver mobile updated successfully`,
+    receiverMobile: user.receiverMobile 
+  });
 };
