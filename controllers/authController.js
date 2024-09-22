@@ -87,3 +87,41 @@ export const selectShipment = async (req, res) => {
     receiverMobile: user.receiverMobile 
   });
 };
+
+// Save Locker Size
+export const saveLockerSize = async (req, res) => {
+  const { mobile, lockerSize } = req.body;
+
+  const user = await User.findOne({ mobile });
+  if (!user || !user.isVerified) {
+    return res.status(400).json({ message: 'User not verified or does not exist' });
+  }
+
+  user.lockerSize = lockerSize;
+  await user.save();
+
+  return res.status(200).json({
+    message: `Locker size '${lockerSize}' saved successfully`,
+    user: { mobile: user.mobile, lockerSize: user.lockerSize },
+  });
+};
+
+// Fetch Locker Details
+export const fetchLockerDetails = async (req, res) => {
+  const { mobile } = req.body;
+
+  const user = await User.findOne({ mobile });
+
+  if (!user || !user.isVerified) {
+    return res.status(400).json({ message: 'User not verified or does not exist' });
+  }
+
+  return res.status(200).json({
+    message: 'Details fetched successfully',
+    lockerSize: user.lockerSize,
+    receiverMobile: user.receiverMobile,
+    senderMobile: user.mobile,
+  });
+};
+
+
