@@ -97,12 +97,22 @@ export const saveLockerSize = async (req, res) => {
     return res.status(400).json({ message: 'User not verified or does not exist' });
   }
 
+  let lockerPrice;
+  if (lockerSize === 'MEDIUM 5X5') {
+    lockerPrice = 30;
+  } else if (lockerSize === 'LARGE 7X7') {
+    lockerPrice = 50;
+  } else {
+    return res.status(400).json({ message: 'Invalid locker size' });
+  }
+
   user.lockerSize = lockerSize;
+  user.lockerPrice = lockerPrice;
   await user.save();
 
   return res.status(200).json({
-    message: `Locker size '${lockerSize}' saved successfully`,
-    user: { mobile: user.mobile, lockerSize: user.lockerSize },
+    message: `Locker size '${lockerSize}' with price ${lockerPrice} Rs/day saved successfully`,
+    user: { mobile: user.mobile, lockerSize: user.lockerSize, lockerPrice: user.lockerPrice },
   });
 };
 
@@ -121,6 +131,8 @@ export const fetchLockerDetails = async (req, res) => {
     lockerSize: user.lockerSize,
     receiverMobile: user.receiverMobile,
     senderMobile: user.mobile,
+    lockerPrice: user.lockerPrice, // Return the locker price
+
   });
 };
 
