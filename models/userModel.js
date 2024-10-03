@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema({
   shipmentType: { type: String, enum: ['pickup', 'drop'], default: null }, // New field
   receiverMobile: { type: String }, // New field for receiver mobile number
   lockerSize: { type: String, enum: ['MEDIUM 5X5', 'LARGE 7X7'], default: null }, // New field
+  lockerPrice: { type: Number, default: null }, // New field to store locker price
+
 
 
 });
