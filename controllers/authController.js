@@ -100,9 +100,9 @@ export const saveLockerSize = async (req, res) => {
 
   let lockerPrice;
   if (lockerSize === 'MEDIUM 5X5') {
-    lockerPrice = 30;
+    lockerPrice = 1;
   } else if (lockerSize === 'LARGE 7X7') {
-    lockerPrice = 50;
+    lockerPrice = 2;
   } else {
     return res.status(400).json({ message: 'Invalid locker size' });
   }
