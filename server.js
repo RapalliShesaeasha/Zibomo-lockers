@@ -19,7 +19,7 @@ app.get('/api/test', (req, res) => {
 });
 
 // Payment Data Placeholder
-let paymentData = {};
+/*let paymentData = {};
 
 // API to get credentials for payment
 app.get('/api/credentials', (req, res) => {
@@ -119,7 +119,7 @@ app.post('/api/webhook', (req, res) => {
   console.log('Calculated Signature:', calculatedSignature);
 
   res.status(200).send('Payment data and signature received and stored successfully');
-});
+});*/
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
