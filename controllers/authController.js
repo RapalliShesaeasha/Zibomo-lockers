@@ -20,7 +20,7 @@ export const sendOTP = async (req, res) => {
   );
 
   // Construct the message to send via SMS
-  const message = Your OTP for login to Zibomo Sprint Safe is ${otp}%0APlease do not share this OTP with anyone.%0ARegards,%0AAppprotech.; // Use %0A for new lines
+  const message = `Your OTP for login to Zibomo Sprint Safe is ${otp}%0APlease do not share this OTP with anyone.%0ARegards,%0AAppprotech.`; // Use %0A for new lines
 
   const data = new URLSearchParams({
     apiKey: process.env.TEXTLOCAL_API_KEY, // Your TextLocal API Key
