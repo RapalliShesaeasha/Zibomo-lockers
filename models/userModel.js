@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema({
   receiverMobile: { type: String }, // New field for receiver mobile number
   lockerSize: { type: String, enum: ['MEDIUM 5X5', 'LARGE 7X7'], default: null }, // New field
   lockerPrice: { type: Number, default: null }, // New field to store locker price
+  transactionId: { type: String, required: true }, // New field for transaction ID
+  paymentStatus: { type: String, required: true }, // New field for payment status
 
 
 
