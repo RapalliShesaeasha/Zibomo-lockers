@@ -10,48 +10,47 @@ const generateOTP = () => {
 
 // Send OTP
 export const sendOTP = async (req, res) => {
-  const { mobile } = req.body; // Extract mobile number from the request body
+  const { mobile } = req.body; // Ensure this matches the schema
 
-  const otp = generateOTP(); // Generate a new OTP
+  const otp = generateOTP();
   const user = await User.findOneAndUpdate(
-    { mobile }, // Use the mobile number to find the user
-    { otp, isVerified: false }, // Update OTP and set isVerified to false
-    { upsert: true, new: true } // Create user if not exists
+    { mobile }, // Using mobile correctly
+    { otp, isVerified: false },
+    { upsert: true, new: true }
   );
 
-  // Construct the message to send via SMS
-  const message = `Your OTP for login to Zibomo Sprint Safe is ${otp}%0APlease do not share this OTP with anyone.%0ARegards,%0AAppprotech.`; // Use %0A for new lines
+  // Updated message with your desired format
+  const message = Your OTP for login to Zibomo Sprint Safe is ${otp}%0APlease do not share this OTP with anyone.%0ARegards,%0AAppprotech.; // Use %0A for new lines
 
   const data = new URLSearchParams({
-    apiKey: process.env.TEXTLOCAL_API_KEY, // Your TextLocal API Key
-    numbers: mobile, // Recipient's mobile number
-    message, // SMS message
-    sender: process.env.TEXTLOCAL_SENDER, // Sender ID
+    apiKey: process.env.TEXTLOCAL_API_KEY,
+    numbers: mobile,
+    message,
+    sender: process.env.TEXTLOCAL_SENDER,
   }).toString();
 
   try {
-    // Send the SMS request to TextLocal API
     await axios.post('https://api.textlocal.in/send/', data, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, // Set content type
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
     return res.status(200).json({ message: 'OTP sent successfully', user });
   } catch (error) {
-    console.error('Failed to send OTP:', error); // Log the error for debugging
-    return res.status(500).json({ message: 'Failed to send OTP', error: error.message });
+    return res.status(500).json({ message: 'Failed to send OTP', error });
   }
 };
 
+
 // Verify OTP
 export const verifyOTP = async (req, res) => {
-  const { mobile, otp } = req.body; // Extract mobile and OTP from request body
-  const user = await User.findOne({ mobile }); // Find user by mobile number
+  const { mobile, otp } = req.body;
+  const user = await User.findOne({ mobile });
 
-  if (user && user.otp === otp) { // Check if user exists and OTP matches
-    user.isVerified = true; // Set user as verified
-    await user.save(); // Save updated user data
+  if (user && user.otp === otp) {
+    user.isVerified = true;
+    await user.save();
 
     // Send user's mobile number along with the response
-    return res.status(200).json({
+    return res.status(200).json({ 
       message: 'OTP verified successfully',
       user: {
         mobile: user.mobile,
@@ -60,7 +59,7 @@ export const verifyOTP = async (req, res) => {
     });
   }
 
-  return res.status(400).json({ message: 'Invalid OTP' }); // Handle invalid OTP case
+  res.status(400).json({ message: 'Invalid OTP' });
 };
 
 // Updated selectShipment function to handle the receiver mobile number
