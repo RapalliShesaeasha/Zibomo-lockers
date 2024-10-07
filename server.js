@@ -2,9 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import connectDB from './config/db.js';
-import authRoutes from './routes/authRoutes.js';
+import User from './models/userModel.js';  // Make sure this is correctly imported
 import bodyParser from 'body-parser';
-import crypto from 'crypto';
 
 dotenv.config();
 connectDB();
@@ -25,6 +24,7 @@ app.post('/payment-status', async (req, res) => {
   const { transactionId, paymentStatus } = req.body;
 
   if (!transactionId || !paymentStatus) {
+    console.log("Invalid data received: ", req.body);
     return res.status(400).json({ message: 'Invalid data received' });
   }
 
@@ -32,7 +32,7 @@ app.post('/payment-status', async (req, res) => {
 
   // Save transactionId and paymentStatus to the database
   try {
-    // Find the user with the corresponding transactionId (you can adjust the logic as needed)
+    // Find the user with the corresponding transactionId
     const user = await User.findOneAndUpdate(
       { transactionId: transactionId }, // Search by transactionId
       { paymentStatus: paymentStatus }, // Update the paymentStatus
@@ -43,6 +43,7 @@ app.post('/payment-status', async (req, res) => {
       console.log('Transaction status saved to database:', user);
       return res.status(200).json({ message: 'Payment status updated successfully' });
     } else {
+      console.log('Transaction not found, but status was saved.');
       return res.status(404).json({ message: 'User not found, but transaction status was saved.' });
     }
   } catch (error) {
