@@ -116,11 +116,7 @@ app.post('/payment-response-v1', async (req, res) => {
     }
 
     // Store paymentResponse in MongoDB
-    updateDb(paymentResponse);
-});
-
-async updateDb(paymentResponse) { 
-        const transactionId = paymentResponse.transactionId
+  const transactionId = paymentResponse.transactionId
         const transactionOrderId: paymentResponse.orderId  // Send orderId as transactionOrderId
         const paymentStatus: paymentResponse.status?.status || 'Unknown'
   
@@ -152,7 +148,7 @@ async updateDb(paymentResponse) {
     console.error('Error updating payment status:', error);
    
   }
-}
+});
 
 
 
