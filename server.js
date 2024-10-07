@@ -3,8 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import connectDB from './config/db.js';
 import User from './models/userModel.js';  // Make sure this is correctly imported
-import bodyParser from 'body-parser';
-import crypto from 'crypto'; 
+import bodyParser from 'body-parser'; 
 
 dotenv.config();
 connectDB();
