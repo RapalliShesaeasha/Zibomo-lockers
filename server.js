@@ -58,6 +58,75 @@ app.post('/payment-status', async (req, res) => {
   }
 });
 
+app.post('/api/store-payment-response', async (req, res) => {
+
+    // Assuming you are sending a JSON body from main.js
+    const paymentResponse = req.body;
+
+    console.log(req.headers);
+
+    if (!paymentResponse || !paymentResponse.legalEntityCode || !paymentResponse.orderId) {
+        return res.status(400).send('Invalid payment data received');
+    }
+
+    // Log the data received from main.js
+    //console.log('Data received from main.js:', paymentResponse);
+
+    const boxpaySaltKey = process.env.SALT_KEY;
+
+    // Extract the 'x-signature' header
+    const receivedSignature = req.headers['x-signature'];
+
+    // Construct the signature text
+    const signatureText = [
+        boxpaySaltKey,
+        paymentResponse.legalEntityCode,
+        paymentResponse.orderId,
+        paymentResponse.transactionId,
+        paymentResponse.operationId,
+        paymentResponse.eventId,
+        paymentResponse.countryCode,
+        paymentResponse.status.status,
+        paymentResponse.money.currencyCode,
+        paymentResponse.money.amount
+    ].join('');
+
+    // Hash the signature text using SHA-256
+    const hash = crypto.createHash('sha256');
+    const output = hash.update(signatureText, 'utf8').digest();
+
+    // Convert the output to a hexadecimal string
+    let hashText = output.toString('hex');
+
+    // Add preceding 0s to make it 64 characters long (if necessary)
+    while (hashText.length < 64) {
+        hashText = '0' + hashText;
+    }
+
+    // Calculated signature
+    const calculatedSignature = hashText;
+
+    // Log the received signature and the calculated signature for comparison
+    console.log('Received Signature:', receivedSignature);
+    console.log('Calculated Signature:', calculatedSignature);
+
+    // Verify if the signature matches
+    if (receivedSignature !== calculatedSignature) {
+        return res.status(403).send('Invalid signature')
+    }
+
+    // Store paymentResponse in MongoDB
+    try {
+        const collection = db.collection('payments')  // Actual collection name
+        await collection.insertOne(paymentResponse)
+        console.log('Payment data stored in MongoDB:', paymentResponse)
+        return res.status(200).send('Payment data and signature verified and stored successfully')  // Return after sending response
+    } catch (err) {
+        console.error('Error storing payment data in MongoDB:', err)
+        return res.status(500).send('Error storing payment data')  // Add return to stop execution
+    }
+});
+
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
