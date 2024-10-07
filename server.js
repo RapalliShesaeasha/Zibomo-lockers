@@ -5,6 +5,7 @@ import connectDB from './config/db.js';
 import User from './models/userModel.js';  // Make sure this is correctly imported
 import bodyParser from 'body-parser';
 import authRoutes from './routes/authRoutes.js';  // Make sure this is correctly imported
+import mongoose from 'mongoose';  // Import mongoose here
 
 
 dotenv.config();
