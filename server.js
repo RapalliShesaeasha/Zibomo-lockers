@@ -35,7 +35,7 @@ app.post('/payment-status', async (req, res) => {
   try {
     // Find the user where transactionOrderId matches userId (or orderId)
     const user = await User.findOneAndUpdate(
-      { userId: transactionOrderId },  // Check if the orderId matches userId
+      { _id: mongoose.Types.ObjectId(transactionOrderId) },  // Check if the orderId matches userId
       { paymentStatus: paymentStatus },  // Update the paymentStatus
       { new: true }  // Return the updated user
     );
