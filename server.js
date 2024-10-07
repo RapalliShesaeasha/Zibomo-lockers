@@ -58,7 +58,7 @@ app.post('/payment-status', async (req, res) => {
   }
 });
 
-app.post('/api/store-payment-response', async (req, res) => {
+app.post('/payment-response-v1', async (req, res) => {
 
     // Assuming you are sending a JSON body from main.js
     const paymentResponse = req.body;
@@ -116,16 +116,44 @@ app.post('/api/store-payment-response', async (req, res) => {
     }
 
     // Store paymentResponse in MongoDB
-    try {
-        const collection = db.collection('payments')  // Actual collection name
-        await collection.insertOne(paymentResponse)
-        console.log('Payment data stored in MongoDB:', paymentResponse)
-        return res.status(200).send('Payment data and signature verified and stored successfully')  // Return after sending response
-    } catch (err) {
-        console.error('Error storing payment data in MongoDB:', err)
-        return res.status(500).send('Error storing payment data')  // Add return to stop execution
-    }
+    updateDb(paymentResponse);
 });
+
+async updateDb(paymentResponse) { 
+        const transactionId = paymentResponse.transactionId
+        const transactionOrderId: paymentResponse.orderId  // Send orderId as transactionOrderId
+        const paymentStatus: paymentResponse.status?.status || 'Unknown'
+  
+  if (!transactionId || !transactionOrderId || !paymentStatus) {
+    console.log("Invalid data received: ", req.body);
+    return res.status(400).json({ message: 'Invalid data received' });
+  }
+
+  console.log(`Received payment status update: Transaction ID - ${transactionId}, Order ID - ${transactionOrderId}, Status - ${paymentStatus}`);
+
+  try {
+    // Use mongoose to validate and convert transactionOrderId to ObjectId
+    const objectId = new mongoose.Types.ObjectId(transactionOrderId);
+
+    // Find the user and update the paymentStatus
+    const user = await User.findOneAndUpdate(
+      { _id: objectId },  // Use _id for MongoDB matching
+      { paymentStatus: paymentStatus },  // Update the paymentStatus
+      { new: true }  // Return the updated user
+    );
+
+    if (user) {
+      console.log('Transaction status updated for user:', user);
+    } else {
+      console.log('User not found for the given transactionOrderId.');
+    }
+  } catch (error) {
+    // Log detailed error
+    console.error('Error updating payment status:', error);
+   
+  }
+}
+
 
 
 const PORT = process.env.PORT || 8080;
