@@ -2,9 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import connectDB from './config/db.js';
-import authRoutes from './routes/authRoutes.js';
+import User from './models/userModel.js';  // Make sure this is correctly imported
 import bodyParser from 'body-parser';
-import crypto from 'crypto'; 
 
 dotenv.config();
 connectDB();
@@ -14,10 +13,11 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.use('/api/auth', authRoutes);
+
+// Test route
 app.get('/api/test', (req, res) => {
   res.status(200).json({ message: 'The server is running and this is a test route!' });
 });
-
 
 // New route to receive transactionId and payment status
 app.post('/payment-status', async (req, res) => {
