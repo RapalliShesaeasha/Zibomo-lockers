@@ -33,9 +33,12 @@ app.post('/payment-status', async (req, res) => {
   console.log(`Received payment status update: Transaction ID - ${transactionId}, Order ID - ${transactionOrderId}, Status - ${paymentStatus}`);
 
   try {
-    // Find the user where transactionOrderId matches userId (or orderId)
+    // Use mongoose to validate and convert transactionOrderId to ObjectId
+    const objectId = mongoose.Types.ObjectId(transactionOrderId);
+
+    // Find the user and update the paymentStatus
     const user = await User.findOneAndUpdate(
-      { _id: mongoose.Types.ObjectId(transactionOrderId) },  // Check if the orderId matches userId
+      { _id: objectId },  // Use _id for MongoDB matching
       { paymentStatus: paymentStatus },  // Update the paymentStatus
       { new: true }  // Return the updated user
     );
@@ -48,8 +51,9 @@ app.post('/payment-status', async (req, res) => {
       return res.status(404).json({ message: 'User not found.' });
     }
   } catch (error) {
-    console.error('Error updating payment status:', error.message);
-    return res.status(500).json({ message: 'Error saving payment status' });
+    // Log detailed error
+    console.error('Error updating payment status:', error);
+    return res.status(500).json({ message: 'Error saving payment status', error: error.message });
   }
 });
 
