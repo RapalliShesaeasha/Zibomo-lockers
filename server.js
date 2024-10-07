@@ -117,8 +117,8 @@ app.post('/payment-response-v1', async (req, res) => {
 
     // Store paymentResponse in MongoDB
   const transactionId = paymentResponse.transactionId
-        const transactionOrderId: paymentResponse.orderId  // Send orderId as transactionOrderId
-        const paymentStatus: paymentResponse.status?.status || 'Unknown'
+        const transactionOrderId = paymentResponse.orderId  // Send orderId as transactionOrderId
+        const paymentStatus = paymentResponse.status?.status || 'Unknown'
   
   if (!transactionId || !transactionOrderId || !paymentStatus) {
     console.log("Invalid data received: ", req.body);
