@@ -35,7 +35,7 @@ app.post('/payment-status', async (req, res) => {
 
   try {
     // Use mongoose to validate and convert transactionOrderId to ObjectId
-    const objectId = mongoose.Types.ObjectId(transactionOrderId);
+    const objectId = new mongoose.Types.ObjectId(transactionOrderId);
 
     // Find the user and update the paymentStatus
     const user = await User.findOneAndUpdate(
