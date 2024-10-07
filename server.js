@@ -6,6 +6,7 @@ import User from './models/userModel.js';  // Make sure this is correctly import
 import bodyParser from 'body-parser';
 import authRoutes from './routes/authRoutes.js';  // Make sure this is correctly imported
 import mongoose from 'mongoose';  // Import mongoose here
+import crypto from 'crypto';
 
 
 dotenv.config();
@@ -72,7 +73,7 @@ app.post('/payment-response-v1', async (req, res) => {
     // Log the data received from main.js
     //console.log('Data received from main.js:', paymentResponse);
 
-    const boxpaySaltKey = process.env.SALT_KEY;
+    const boxpaySaltKey = "kBTvCI4t5SkBTvCI4t5T";
 
     // Extract the 'x-signature' header
     const receivedSignature = req.headers['x-signature'];
