@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   lockerSize: { type: String, enum: ['MEDIUM 5X5', 'LARGE 7X7'], default: null }, // New field
   lockerPrice: { type: Number, default: null }, // New field to store locker price
   transactionId: { type: String }, // New field for transaction ID
+  transactionOrderId: { type: String },
   paymentStatus: { type: String }, // New field for payment status
 
 
