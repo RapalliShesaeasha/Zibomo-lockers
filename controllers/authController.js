@@ -11,11 +11,11 @@ const generateOTP = () => {
 
 // Create User without OTP
 export const createUser = async (req, res) => {
-  const { name, mobileNumber, email } = req.body;
+  const { name, phone, email } = req.body;
 
   try {
     // Check if user already exists by name, mobile number, or email
-    let user = await User.findOne({ $or: [{ mobileNumber }, { email }, { name }] });
+    let user = await User.findOne({ $or: [{ phone }, { email }, { name }] });
     
     if (user) {
       return res.status(200).json({ message: 'User already exists, successful login', user });
@@ -24,7 +24,7 @@ export const createUser = async (req, res) => {
     // Create a new user if not found
     user = new User({
       name,
-      mobileNumber,
+      phone,
       email,
     });
 
