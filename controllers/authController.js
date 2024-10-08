@@ -1,6 +1,6 @@
 import axios from 'axios';
 import User from '../models/userModel.js';
-import Order from '../models/Order';
+import Order from '../models/orderModel.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -153,9 +153,6 @@ export const fetchLockerDetails = async (req, res) => {
   if (!order || !order.isVerified) {
     return res.status(400).json({ message: 'User not verified or order does not exist' });
   }
-
-  import Order from '../models/Order'; // Adjust the import path based on your project structure
-import User from '../models/User';     // Adjust the import path based on your project structure
 
 // Fetch Locker Details
 export const fetchLockerDetails = async (req, res) => {
