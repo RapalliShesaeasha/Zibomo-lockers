@@ -146,18 +146,6 @@ export const saveLockerSize = async (req, res) => {
 export const fetchLockerDetails = async (req, res) => {
   const { mobile } = req.body;
 
-  // Fetch order details based on mobile number
-  const order = await Order.findOne({ mobile });
-
-  // Check if order exists and is verified
-  if (!order || !order.isVerified) {
-    return res.status(400).json({ message: 'User not verified or order does not exist' });
-  }
-
-// Fetch Locker Details
-export const fetchLockerDetails = async (req, res) => {
-  const { mobile } = req.body;
-
   try {
     // Find the order by mobile number
     const order = await Order.findOne({ mobile });
