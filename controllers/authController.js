@@ -171,7 +171,7 @@ export const fetchLockerDetails = async (req, res) => {
     }
 
     // Find the user by phone number (without country code)
-    const user = await User.findOne({ phone: order.receiverMobile.replace('+91', '') });
+    const user = await User.findOne({ phone: order.mobile.replace('+91', '') });
 
     // Check if the user exists
     if (!user) {
