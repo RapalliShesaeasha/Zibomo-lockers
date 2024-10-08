@@ -146,17 +146,30 @@ export const saveLockerSize = async (req, res) => {
 export const fetchLockerDetails = async (req, res) => {
   const { mobile } = req.body;
 
+  // Fetch order details
   const order = await Order.findOne({ mobile });
 
+  // Check if order exists and is verified
   if (!order || !order.isVerified) {
     return res.status(400).json({ message: 'User not verified or order does not exist' });
   }
 
+  // Fetch user details based on mobile number
+  const user = await User.findOne({ phone: mobile });
+
+  // Check if user exists
+  if (!user) {
+    return res.status(400).json({ message: 'User does not exist' });
+  }
+
+  // Prepare response with both IDs and other details
   return res.status(200).json({
     message: 'Details fetched successfully',
     lockerSize: order.lockerSize,
     receiverMobile: order.receiverMobile,
     senderMobile: order.mobile,
     lockerPrice: order.lockerPrice,
+    userId: user._id,          // User's MongoDB ID
+    orderId: order._id         // Order's MongoDB ID
   });
 };
