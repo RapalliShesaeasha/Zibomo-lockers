@@ -1,5 +1,6 @@
 import axios from 'axios';
 import User from '../models/userModel.js';
+import Order from '../models/orderModel.js'; // Import the new Order model
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -8,83 +9,108 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString(); // Generate a 6-digit OTP
 };
 
-// Send OTP
-export const sendOTP = async (req, res) => {
-  const { mobile } = req.body; // Ensure this matches the schema
-
-  const otp = generateOTP();
-  const user = await User.findOneAndUpdate(
-    { mobile }, // Using mobile correctly
-    { otp, isVerified: false },
-    { upsert: true, new: true }
-  );
-
-  // Updated message with your desired format
-  const message = `Your OTP for login to Zibomo Sprint Safe is ${otp}%0APlease do not share this OTP with anyone.%0ARegards,%0AAppprotech.`; // Use %0A for new lines
-
-  const data = new URLSearchParams({
-    apiKey: process.env.TEXTLOCAL_API_KEY,
-    numbers: mobile,
-    message,
-    sender: process.env.TEXTLOCAL_SENDER,
-  }).toString();
+// Create User without OTP
+export const createUser = async (req, res) => {
+  const { name, phone, email } = req.body;
 
   try {
-    await axios.post('https://api.textlocal.in/send/', data, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    // Check if user already exists by name, mobile number, or email
+    let user = await User.findOne({ $or: [{ phone }, { email }, { name }] });
+    
+    if (user) {
+      return res.status(200).json({ message: 'User already exists, successful login', user });
+    }
+
+    // Create a new user if not found
+    user = new User({
+      name,
+      phone,
+      email,
     });
-    return res.status(200).json({ message: 'OTP sent successfully', user });
+
+    await user.save();
+    res.status(201).json({ message: 'User created successfully', user });
   } catch (error) {
-    return res.status(500).json({ message: 'Failed to send OTP', error });
+    res.status(500).json({ message: 'Failed to create user', error });
   }
 };
 
+// Send OTP
+export const sendOTP = async (req, res) => {
+  const { mobile } = req.body; // Extract mobile number from the request body
+
+  const otp = generateOTP(); // Generate a new OTP
+  const order = await Order.findOneAndUpdate(
+    { mobile }, // Use the mobile number to find the order
+    { otp, isVerified: false }, // Update OTP and set isVerified to false
+    { upsert: true, new: true } // Create order if not exists
+  );
+
+  // Construct the message to send via SMS
+  const message = `Your OTP for login to Zibomo Sprint Safe is ${otp}%0APlease do not share this OTP with anyone.%0ARegards,%0AAppprotech.`; // Use %0A for new lines
+
+  const data = new URLSearchParams({
+    apiKey: process.env.TEXTLOCAL_API_KEY, // Your TextLocal API Key
+    numbers: mobile, // Recipient's mobile number
+    message, // SMS message
+    sender: process.env.TEXTLOCAL_SENDER, // Sender ID
+  }).toString();
+
+  try {
+    // Send the SMS request to TextLocal API
+    await axios.post('https://api.textlocal.in/send/', data, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, // Set content type
+    });
+    return res.status(200).json({ message: 'OTP sent successfully', order });
+  } catch (error) {
+    console.error('Failed to send OTP:', error); // Log the error for debugging
+    return res.status(500).json({ message: 'Failed to send OTP', error: error.message });
+  }
+};
 
 // Verify OTP
 export const verifyOTP = async (req, res) => {
-  const { mobile, otp } = req.body;
-  const user = await User.findOne({ mobile });
+  const { mobile, otp } = req.body; // Extract mobile and OTP from request body
+  const order = await Order.findOne({ mobile }); // Find order by mobile number
 
-  if (user && user.otp === otp) {
-    user.isVerified = true;
-    await user.save();
+  if (order && order.otp === otp) { // Check if order exists and OTP matches
+    order.isVerified = true; // Set order as verified
+    await order.save(); // Save updated order data
 
-    // Send user's mobile number along with the response
-    return res.status(200).json({ 
+    return res.status(200).json({
       message: 'OTP verified successfully',
-      user: {
-        mobile: user.mobile,
-        isVerified: user.isVerified
+      order: {
+        mobile: order.mobile,
+        isVerified: order.isVerified
       }
     });
   }
 
-  res.status(400).json({ message: 'Invalid OTP' });
+  return res.status(400).json({ message: 'Invalid OTP' }); // Handle invalid OTP case
 };
 
-// Updated selectShipment function to handle the receiver mobile number
+// Select Shipment
 export const selectShipment = async (req, res) => {
   const { mobile, shipmentType, receiverMobile, sameAsSender } = req.body;
-  const user = await User.findOne({ mobile });
+  const order = await Order.findOne({ mobile });
 
-  if (!user || !user.isVerified) {
-    return res.status(400).json({ message: 'User not verified or does not exist' });
+  if (!order || !order.isVerified) {
+    return res.status(400).json({ message: 'User not verified or order does not exist' });
   }
 
   // If sameAsSender is true, set receiverMobile to mobile
   if (sameAsSender) {
-    user.receiverMobile = mobile;
+    order.receiverMobile = mobile;
   } else if (receiverMobile) {
-    // Otherwise, use the provided receiver mobile number
-    user.receiverMobile = receiverMobile;
+    order.receiverMobile = receiverMobile;
   }
 
-  user.shipmentType = shipmentType;
-  await user.save();
+  order.shipmentType = shipmentType;
+  await order.save();
 
   return res.status(200).json({ 
     message: `Shipment type '${shipmentType}' and receiver mobile updated successfully`,
-    receiverMobile: user.receiverMobile 
+    receiverMobile: order.receiverMobile 
   });
 };
 
@@ -92,27 +118,27 @@ export const selectShipment = async (req, res) => {
 export const saveLockerSize = async (req, res) => {
   const { mobile, lockerSize } = req.body;
 
-  const user = await User.findOne({ mobile });
-  if (!user || !user.isVerified) {
-    return res.status(400).json({ message: 'User not verified or does not exist' });
+  const order = await Order.findOne({ mobile });
+  if (!order || !order.isVerified) {
+    return res.status(400).json({ message: 'User not verified or order does not exist' });
   }
 
   let lockerPrice;
   if (lockerSize === 'MEDIUM 5X5') {
-    lockerPrice = 1;
+    lockerPrice = 30;
   } else if (lockerSize === 'LARGE 7X7') {
-    lockerPrice = 2;
+    lockerPrice = 50;
   } else {
     return res.status(400).json({ message: 'Invalid locker size' });
   }
 
-  user.lockerSize = lockerSize;
-  user.lockerPrice = lockerPrice;
-  await user.save();
+  order.lockerSize = lockerSize;
+  order.lockerPrice = lockerPrice;
+  await order.save();
 
   return res.status(200).json({
     message: `Locker size '${lockerSize}' with price ${lockerPrice} Rs/day saved successfully`,
-    user: { mobile: user.mobile, lockerSize: user.lockerSize, lockerPrice: user.lockerPrice },
+    order: { mobile: order.mobile, lockerSize: order.lockerSize, lockerPrice: order.lockerPrice },
   });
 };
 
@@ -120,21 +146,17 @@ export const saveLockerSize = async (req, res) => {
 export const fetchLockerDetails = async (req, res) => {
   const { mobile } = req.body;
 
-  // Find the user by mobile number
-  const user = await User.findOne({ mobile });
+  const order = await Order.findOne({ mobile });
 
-  // Check if the user exists and is verified
-  if (!user || !user.isVerified) {
-    return res.status(400).json({ message: 'User not verified or does not exist' });
+  if (!order || !order.isVerified) {
+    return res.status(400).json({ message: 'User not verified or order does not exist' });
   }
 
-  // Return the user details including the _id
   return res.status(200).json({
     message: 'Details fetched successfully',
-    _id: user._id,  // Include the user's _id
-    lockerSize: user.lockerSize,
-    receiverMobile: user.receiverMobile,
-    senderMobile: user.mobile,
-    lockerPrice: user.lockerPrice, // Return the locker price
+    lockerSize: order.lockerSize,
+    receiverMobile: order.receiverMobile,
+    senderMobile: order.mobile,
+    lockerPrice: order.lockerPrice,
   });
 };
