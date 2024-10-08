@@ -146,7 +146,7 @@ export const saveLockerSize = async (req, res) => {
 export const fetchLockerDetails = async (req, res) => {
   const { mobile } = req.body;
 
-  // Fetch order details
+  // Fetch order details based on mobile number
   const order = await Order.findOne({ mobile });
 
   // Check if order exists and is verified
@@ -154,22 +154,42 @@ export const fetchLockerDetails = async (req, res) => {
     return res.status(400).json({ message: 'User not verified or order does not exist' });
   }
 
-  // Fetch user details based on mobile number
-  const user = await User.findOne({ phone: mobile });
+  import Order from '../models/Order'; // Adjust the import path based on your project structure
+import User from '../models/User';     // Adjust the import path based on your project structure
 
-  // Check if user exists
-  if (!user) {
-    return res.status(400).json({ message: 'User does not exist' });
+// Fetch Locker Details
+export const fetchLockerDetails = async (req, res) => {
+  const { mobile } = req.body;
+
+  try {
+    // Find the order by mobile number
+    const order = await Order.findOne({ mobile });
+
+    // Check if the order exists and is verified
+    if (!order || !order.isVerified) {
+      return res.status(400).json({ message: 'User not verified or order does not exist' });
+    }
+
+    // Find the user by phone number (without country code)
+    const user = await User.findOne({ phone: order.receiverMobile.replace('+91', '') });
+
+    // Check if the user exists
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return order and user details
+    return res.status(200).json({
+      message: 'Details fetched successfully',
+      lockerSize: order.lockerSize,
+      receiverMobile: order.receiverMobile,
+      senderMobile: order.mobile,
+      lockerPrice: order.lockerPrice,
+      orderId: order._id,    // Include order ID
+      userId: user._id,      // Include user ID
+    });
+  } catch (error) {
+    console.error('Error fetching locker details:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
-
-  // Prepare response with both IDs and other details
-  return res.status(200).json({
-    message: 'Details fetched successfully',
-    lockerSize: order.lockerSize,
-    receiverMobile: order.receiverMobile,
-    senderMobile: order.mobile,
-    lockerPrice: order.lockerPrice,
-    userId: user._id,          // User's MongoDB ID
-    orderId: order._id         // Order's MongoDB ID
-  });
 };
