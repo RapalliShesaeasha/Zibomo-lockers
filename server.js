@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import connectDB from './config/db.js';
 import User from './models/userModel.js';  // Make sure this is correctly imported
+import Order from '.models/orderModel.js';
 import bodyParser from 'body-parser';
 import authRoutes from './routes/authRoutes.js';  // Make sure this is correctly imported
 import mongoose from 'mongoose';  // Import mongoose here
@@ -33,16 +34,16 @@ app.post('/payment-status', async (req, res) => {
     // Use mongoose to validate and convert transactionOrderId to ObjectId
     const objectId = new mongoose.Types.ObjectId(transactionOrderId);
     // Find the user and update the paymentStatus
-    const user = await User.findOneAndUpdate(
+    const order = await Order.findOneAndUpdate(
       { _id: objectId },  // Use _id for MongoDB matching
       { paymentStatus: paymentStatus },  // Update the paymentStatus
       { new: true }  // Return the updated user
     );
-    if (user) {
-      console.log('Transaction status updated for user:', user);
+    if (order) {
+      console.log('Transaction status updated for order:', order);
       return res.status(200).json({ message: 'Payment status updated successfully' });
     } else {
-      console.log('User not found for the given transactionOrderId.');
+      console.log('Order not found for the given transactionOrderId.');
       return res.status(404).json({ message: 'User not found.' });
     }
   } catch (error) {
@@ -122,18 +123,18 @@ app.post('/payment-response-v1', async (req, res) => {
         // Use mongoose to validate and convert transactionOrderId to ObjectId
         const objectId = new mongoose.Types.ObjectId(transactionOrderId);
         // Find the user and update the paymentStatus
-        const user = await User.findOneAndUpdate(
+        const order = await Order.findOneAndUpdate(
           { _id: objectId },  // Use _id for MongoDB matching
           { paymentStatus: paymentStatus },  // Update the paymentStatus
           { new: true }  // Return the updated user
         );
         
-        if (user) {
-          console.log('Transaction status updated for user:', user);
+        if (order) {
+          console.log('Transaction status updated for order:', order);
           return res.status(200).json({ message: 'Payment status updated successfully' });
         } else {
-          console.log('User not found for the given transactionOrderId.');
-          return res.status(404).json({ message: 'User not found.' });
+          console.log('Order not found for the given transactionOrderId.');
+          return res.status(404).json({ message: 'Order not found.' });
         }
 
       } catch (error) {
